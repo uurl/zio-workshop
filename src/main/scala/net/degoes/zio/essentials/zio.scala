@@ -90,7 +90,7 @@ object zio_types {
   type RIO[-R, +A] = ZIO[R, Throwable, A]
 
   /**
-   * EXERCISE 8
+   * EXERCISE 9
    *
    * An effect that cannot fail, but may succeed with a value of 
    * type `A`, and which requires an `R` environment.
@@ -134,8 +134,12 @@ object zio_values {
    * Note: You will have to use the `.refineOrDie` method to refine the
    * `Throwable` type into something more specific.
    */
-  val getStrLn: Task[String] = ZIO.effect(readLine).refineOrDie { case io: java.io.IOException => io }
+  val getStrLn: Task[String] = 
+    ZIO.effect(readLine).refineOrDie { 
+      case io: java.io.IOException => io 
+    }
 
+  import java.io.IOException
   /**
    * EXERCISE 6
    *
@@ -145,8 +149,7 @@ object zio_values {
    * Note: You will have to use the `.refineOrDie` method to refine the
    * `Throwable` type into `IOException`.
    */
-  import java.io.IOException
-  def readFile(file: File): IO[IOException, List[String]] =
+  def readFile(file: File): IO[Throwable, List[String]] =
     ZIO.effect(Source.fromFile(file).getLines.toList).refineOrDie {
       case io: IOException => io
     }
@@ -171,8 +174,8 @@ object zio_values {
    * Using the `ZIO#refineOrDie` method, catch the `NoSuchElementException` and
    * return -1.
    */
-  //def firstOrNegative1(as: List[Int]): UIO[Int] =  
-  //  ZIO.effect(as.head).refineOrDie 
+  def firstOrNegative1(as: List[Int]): UIO[Int] = 
+    Task.effect(as.head) ?
 
   /**
    * EXERCISE 9
