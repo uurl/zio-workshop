@@ -34,28 +34,28 @@ object zio_types {
    * An effect that might fail with an error of type `E` or succeed with a
    * value of type `A`.
    */
-  type FailOrSuccess[E, A] = ???
+  type FailOrSuccess[E, A] = ZIO[Any, E, A]
 
   /**
    * EXERCISE 2
    *
    * An effect that never fails and might succeed with a value of type `A`
    */
-  type Success[A] = ???
+  type Success[A] = ZIO[Any, Nothing, A]
 
   /**
    * EXERCISE 3
    *
    * An effect that runs forever but might fail with `E`.
    */
-  type Forever[E] = ???
+  type Forever[E] = ZIO[Any, E, Nothing]
 
   /**
    * EXERCISE 4
    *
    * An effect that cannot fail or succeed with a value.
    */
-  type NeverStops = ???
+  type NeverStops = ZIO[Any, Nothing, Nothing]
 
   /**
    * EXERCISE 5
@@ -63,7 +63,7 @@ object zio_types {
    * An effect that may fail with a value of type `E` or succeed with a value
    * of type `A`, and doesn't require any specific environment.
    */
-  type IO[+E, +A] = ???
+  type IO[+E, +A] = ZIO[Any, E, A]
 
   /**
    * EXERCISE 6
@@ -71,7 +71,7 @@ object zio_types {
    * An effect that may fail with `Throwable` or succeed with a value of
    * type `A`, and doesn't require any specific environment.
    */
-  type Task[+A] = ???
+  type Task[+A] = ZIO[Any, Throwable, A]
 
   /**
    * EXERCISE 7
@@ -79,7 +79,7 @@ object zio_types {
    * An effect that cannot fail but may succeed with a value of type `A`,
    * and doesn't require any specific environment.
    */
-  type UIO[+A] = ???
+  type UIO[+A] = ZIO[Any, Nothing, A]
 
   /**
    * EXERCISE 8
@@ -87,7 +87,7 @@ object zio_types {
    * An effect that may fail with `Throwable` or succeed with a value of 
    * type `A`, and which requires an `R` environment.
    */
-  type RIO[-R, +A] = ???
+  type RIO[-R, +A] = ZIO[R, Throwable, A]
 
   /**
    * EXERCISE 8
@@ -95,7 +95,7 @@ object zio_types {
    * An effect that cannot fail, but may succeed with a value of 
    * type `A`, and which requires an `R` environment.
    */
-  type URIO[-R, +A] = ???
+  type URIO[-R, +A] = ZIO[R, Nothing, A]
 }
 
 object zio_values {
@@ -106,7 +106,7 @@ object zio_values {
    * Using the `ZIO.succeed` method. Construct an effect that succeeds with the
    * integer `42`, and ascribe the correct type.
    */
-  val ioInt: ??? = ???
+  val ioInt: UIO[Int] = ZIO.succeed(42)
 
   /**
    * EXERCISE 2
@@ -114,7 +114,7 @@ object zio_values {
    * Using the `ZIO.fail` method, construct an effect that fails with the string
    * "Incorrect value", and ascribe the correct type.
    */
-  val incorrectVal: ??? = ???
+  val incorrectVal: IO[String, Nothing] = ZIO.fail("Incorrect value")
 
   /**
    * EXERCISE 3
@@ -123,7 +123,7 @@ object zio_values {
    * `println` method, so you have a pure functional version of `println`, and
    * ascribe the correct type.
    */
-  def putStrLn(line: String): ??? = println(line) ?
+  def putStrLn(line: String): UIO[Unit] = ZIO.effectTotal(println(line))
 
   /**
    * EXERCISE 4
@@ -134,7 +134,7 @@ object zio_values {
    * Note: You will have to use the `.refineOrDie` method to refine the
    * `Throwable` type into something more specific.
    */
-  val getStrLn: Task[String] = ???
+  val getStrLn: Task[String] = ZIO.effect(readLine).refineOrDie { case io: java.io.IOException => io }
 
   /**
    * EXERCISE 6
@@ -147,7 +147,9 @@ object zio_values {
    */
   import java.io.IOException
   def readFile(file: File): IO[IOException, List[String]] =
-    Source.fromFile(file).getLines.toList ?
+    ZIO.effect(Source.fromFile(file).getLines.toList).refineOrDie {
+      case io: IOException => io
+    }
 
   /**
    * EXERCISE 7
@@ -158,8 +160,10 @@ object zio_values {
    * Note: You will have to use the `.refineOrDie` method to refine the
    * `Throwable` type into something more specific.
    */
-  def arrayUpdate[A](a: Array[A], i: Int, f: A => A): ??? =
-    a.update(i, f(a(i))) ?
+  def arrayUpdate[A](a: Array[A], i: Int, f: A => A): IO[Throwable, Unit] =
+    ZIO.effect(a.update(i, f(a(i)))).refineOrDie {
+      case io: IOException => io 
+    }
 
   /**
    * EXERCISE 8
@@ -167,7 +171,8 @@ object zio_values {
    * Using the `ZIO#refineOrDie` method, catch the `NoSuchElementException` and
    * return -1.
    */
-  def firstOrNegative1(as: List[Int]): UIO[Int] = Task.effect(as.head) ?
+  //def firstOrNegative1(as: List[Int]): UIO[Int] =  
+  //  ZIO.effect(as.head).refineOrDie 
 
   /**
    * EXERCISE 9
